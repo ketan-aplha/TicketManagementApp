@@ -6,6 +6,7 @@ import com.Library.Management.dto.TicketResponse;
 import com.Library.Management.entity.TicketStatus;
 import com.Library.Management.entity.UserRole;
 import com.Library.Management.service.TicketService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +25,7 @@ public class TicketController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TicketResponse> create(
-            @RequestPart("ticket") TicketRequest request,
+            @RequestPart("ticket") @Valid TicketRequest request, // Added @Valid
             @RequestPart(value = "file", required = false) MultipartFile file) {
         return new ResponseEntity<>(ticketService.createTicket(request, file), HttpStatus.CREATED);
     }

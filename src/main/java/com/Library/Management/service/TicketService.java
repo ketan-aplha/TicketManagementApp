@@ -3,6 +3,8 @@ package com.Library.Management.service;
 import com.Library.Management.dto.TicketRequest;
 import com.Library.Management.dto.TicketResponse;
 import com.Library.Management.entity.*;
+import com.Library.Management.exception.InvalidStatusTransitionException;
+import com.Library.Management.exception.ResourceNotFoundException;
 import com.Library.Management.repository.CategoryRepository;
 import com.Library.Management.repository.TicketRepository;
 import com.Library.Management.repository.UserRepository;
@@ -28,15 +30,12 @@ public class TicketService {
     @Transactional
     public TicketResponse createTicket(TicketRequest request, MultipartFile file) {
         User user = userRepository.findById(request.getCreatorId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getCreatorId()));
 
-        // Handle optional file upload
-        String filePath = null;
-        if (file != null && !file.isEmpty()) {
-            filePath = fileStorageService.store(file);
-        }
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
+
+        String filePath = (file != null && !file.isEmpty()) ? fileStorageService.store(file) : null;
 
         Ticket ticket = Ticket.builder()
                 .title(request.getTitle())
@@ -45,10 +44,9 @@ public class TicketService {
                 .status(TicketStatus.OPEN)
                 .creator(user)
                 .category(category)
-                .attachmentPath(filePath) // Set the path
+                .attachmentPath(filePath)
                 .build();
         return mapToResponse(ticketRepository.save(ticket));
-
     }
 
 
@@ -88,11 +86,17 @@ public class TicketService {
     @Transactional
     public TicketResponse updateStatus(Long id, TicketStatus newStatus) {
         Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with id: " + id));
 
-        // Task 1.3: Lifecycle Logic
+        // BUSINESS LOGIC: Lifecycle State Machine
+        // Rule 1: Closed tickets cannot be changed.
         if (ticket.getStatus() == TicketStatus.CLOSED) {
-            throw new RuntimeException("Cannot update status of a closed ticket");
+            throw new InvalidStatusTransitionException("Cannot update a ticket that is already CLOSED.");
+        }
+
+        // Rule 2: A ticket cannot be RESOLVED unless it was IN_PROGRESS.
+        if (newStatus == TicketStatus.RESOLVED && ticket.getStatus() != TicketStatus.IN_PROGRESS) {
+            throw new InvalidStatusTransitionException("Ticket must be 'IN_PROGRESS' before it can be 'RESOLVED'.");
         }
 
         ticket.setStatus(newStatus);
