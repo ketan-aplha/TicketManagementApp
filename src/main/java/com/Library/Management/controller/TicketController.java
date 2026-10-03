@@ -8,6 +8,8 @@ import com.Library.Management.entity.UserRole;
 import com.Library.Management.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -21,13 +23,16 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/tickets")
 @RequiredArgsConstructor
 public class TicketController {
+    private static final Logger log = LoggerFactory.getLogger(TicketController.class);
     private final TicketService ticketService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TicketResponse> create(
             @RequestPart("ticket") @Valid TicketRequest request, // Added @Valid
             @RequestPart(value = "file", required = false) MultipartFile file) {
-        return new ResponseEntity<>(ticketService.createTicket(request, file), HttpStatus.CREATED);
+        log.info("Received request to create ticket '{}' for creator {}", request.getTitle(), request.getCreatorId());
+        TicketResponse response = ticketService.createTicket(request, file);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -36,11 +41,13 @@ public class TicketController {
             @PageableDefault(size = 10) Pageable pageable,
             @RequestHeader("X-User-Role") UserRole role, // Simulating security
             @RequestHeader("X-User-Id") Long userId) {
+        log.info("Received request to list tickets for user {} with role {} and status {}", userId, role, status);
         return ResponseEntity.ok(ticketService.getAllTickets(status, pageable, role, userId));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TicketResponse> getById(@PathVariable Long id) {
+        log.info("Received request to get ticket {}", id);
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
@@ -48,6 +55,8 @@ public class TicketController {
     public ResponseEntity<TicketResponse> updateStatus(
             @PathVariable Long id,
             @RequestParam TicketStatus status) {
-        return ResponseEntity.ok(ticketService.updateStatus(id, status));
+        log.info("Received request to update ticket {} status to {}", id, status);
+        TicketResponse response = ticketService.updateStatus(id, status);
+        return ResponseEntity.ok(response);
     }
 }
