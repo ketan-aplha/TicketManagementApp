@@ -5,12 +5,14 @@ import com.Library.Management.dto.RegisterRequest;
 import com.Library.Management.entity.UserRole;
 import com.Library.Management.entity.User;
 import com.Library.Management.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -25,6 +27,7 @@ public class UserService {
     public void register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("User already registered by email{}",request.getEmail());
             throw new RuntimeException("Email already registered");
         }
 
@@ -35,10 +38,9 @@ public class UserService {
 
         user.setEmail(request.getEmail());
         user.setPassword(encodedPassword);
-
         user.setUserRole(UserRole.ADMIN);
         user.setUsername(request.getUsername());
-
         userRepository.save(user);
+        log.info("User with details {}  created",user);
     }
 }

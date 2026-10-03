@@ -3,6 +3,7 @@ package com.Library.Management.config;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,19 +18,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http) throws Exception {
-
         http
                 // For a REST API. See CSRF note below.
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
-
                         // Public endpoints
                         .requestMatchers(
                                 "/register",
-                                "/login"
+                                "/login",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**"
                         ).permitAll()
-
                         // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
@@ -38,7 +40,6 @@ public class SecurityConfig {
 
                         // Spring Security handles POST /login
                         .loginProcessingUrl("/login")
-
                         // We are using email instead of username
                         .usernameParameter("email")
                         .passwordParameter("password")
@@ -49,7 +50,6 @@ public class SecurityConfig {
                                     HttpServletResponse.SC_OK
                             );
                         })
-
                         // Return 401 instead of redirecting
                         .failureHandler((request, response, exception) -> {
                             response.setStatus(
@@ -60,10 +60,10 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
+                .httpBasic(Customizer.withDefaults())
+
                 .logout(logout -> logout
-
                         .logoutUrl("/logout")
-
                         .logoutSuccessHandler(
                                 (request, response, authentication) -> {
                                     response.setStatus(
@@ -71,7 +71,6 @@ public class SecurityConfig {
                                     );
                                 }
                         )
-
                         .permitAll()
                 )
 
