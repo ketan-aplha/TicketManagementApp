@@ -37,6 +37,7 @@ public class TicketService {
 
         String filePath = (file != null && !file.isEmpty()) ? fileStorageService.store(file) : null;
 
+
         Ticket ticket = Ticket.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -45,6 +46,7 @@ public class TicketService {
                 .creator(user)
                 .category(category)
                 .attachmentPath(filePath)
+                .metadata(request.getMetadata())
                 .build();
         return mapToResponse(ticketRepository.save(ticket));
     }
