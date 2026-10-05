@@ -17,4 +17,6 @@ public class RegisterRequest {
     private String password;
     @NotNull
     private String username;
+    @NotBlank
+    private String organisationName;
 }

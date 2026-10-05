@@ -6,14 +6,21 @@ import lombok.*;
 import java.util.List;
 
 
-@Entity @Table(name = "users")
+@Entity
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_users_email_organisation", columnNames = {"email", "organisation_id"}),
+                @UniqueConstraint(name = "uk_users_username_organisation", columnNames = {"username", "organisation_id"})
+        }
+)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class User {
+public class User extends TenantAware {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String username;
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String email;
     private String password;
     @Enumerated(EnumType.STRING)

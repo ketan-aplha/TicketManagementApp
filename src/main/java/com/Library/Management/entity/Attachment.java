@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Attachment {
+public class Attachment extends TenantAware {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
