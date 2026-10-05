@@ -39,26 +39,32 @@ public class UserService {
 
     public User register(RegisterRequest request) {
         Long organisationId = null;
+        User ret=null;
         try {
             organisationId = organisationService.findOrganisationByName(request.getOrganisationName());
+            tenantContext.setTenantId(organisationId);
+            log.info("Registering user {} in organisation {}", request.getEmail(), organisationId);
+
+            if (userRepository.existsByEmail(request.getEmail())) {
+                log.warn("User already registered by email{}", request.getEmail());
+                throw new RuntimeException("Email already registered");
+            }
+            String encodedPassword = passwordEncoder.encode(request.getPassword());
+            User user = User.builder().email(request.getEmail()).
+                    password(encodedPassword).
+                    userRole(UserRole.ADMIN).
+                    username(request.getUsername()).
+                    build();
+            user.setOrganisationId(organisationId);
+            log.info("User with details {}  created", user);
+             ret= userRepository.save(user);
         } catch (BusinessException e) {
             log.warn("Organisation not found with name {}", request.getOrganisationName());
             throw new BusinessException("Organisation not found with name: " + request.getOrganisationName());
         }
-        tenantContext.setTenantId(organisationId);
-        log.info("Registering user {} in organisation {}", request.getEmail(), organisationId);
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            log.warn("User already registered by email{}", request.getEmail());
-            throw new RuntimeException("Email already registered");
+        catch (Exception e){
+           e.printStackTrace();
         }
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPassword(encodedPassword);
-        user.setUserRole(UserRole.ADMIN);
-        user.setUsername(request.getUsername());
-        log.info("User with details {}  created", user);
-        return userRepository.save(user);
+        return ret;
     }
 }

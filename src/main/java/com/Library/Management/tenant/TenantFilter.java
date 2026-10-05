@@ -34,20 +34,16 @@ public class TenantFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        try {
-            Long tenantId = resolveTenantId(request);
-            if (tenantId != null) {
-                tenantContext.setTenantId(tenantId);
-                HttpSession session = request.getSession(false);
-                if (session != null) {
-                    session.setAttribute(SESSION_ORGANISATION_ID, tenantId);
-                }
-                log.info("Resolved organisation tenant {}", tenantId);
+        Long tenantId = resolveTenantId(request);
+        if (tenantId != null) {
+            tenantContext.setTenantId(tenantId);
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.setAttribute(SESSION_ORGANISATION_ID, tenantId);
             }
-            filterChain.doFilter(request, response);
-        } finally {
-            tenantContext.clear();
+            log.info("Resolved organisation tenant {}", tenantId);
         }
+        filterChain.doFilter(request, response);
     }
 
     private Long resolveTenantId(HttpServletRequest request) {

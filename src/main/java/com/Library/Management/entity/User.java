@@ -15,6 +15,7 @@ import java.util.List;
         }
 )
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@ToString
 public class User extends TenantAware {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -32,10 +32,10 @@ public class OrganisationService {
     }
     public Long findOrganisationByName(String name) {
         log.info("Looking up organisation {}", name);
-        Optional<Long> organisationId = organisationRepository.findIdByName(name);
-        if (organisationId.isPresent()) {
+        Optional<Organisation> organisation = organisationRepository.findByName(name);
+        if (organisation.isPresent()) {
             log.info("found org");
-            return organisationId.get();
+            return organisation.get().getId();
         } else {
                log.warn("Organisation not found with name {}", name);
             throw new ResourceNotFoundException("Organisation not found with name: " + name);
