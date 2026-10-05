@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.Map;
 
@@ -22,6 +23,9 @@ public class CurrentTenantIdentifierResolverImpl
 
     @Override
     public Long resolveCurrentTenantIdentifier() {
+        if (RequestContextHolder.getRequestAttributes() == null) {
+            return TenantContext.BOOTSTRAP_TENANT;
+        }
         Long tenantId = tenantContext.getTenantId();
         if (tenantId != null) {
             return tenantId;
